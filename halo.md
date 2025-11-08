@@ -320,6 +320,7 @@ subnet 4
 	    }
 	}
 	```
+
      ``
 			konfigurasi Nginx ini telah dimodifikasi untuk menjalankan web server Gustave di lingkungan GNS3, menyajikan halaman profil khusus, dan mengatur custom log. Blok http mendefinisikan pengaturan global, seperti penggunaan `user www-data` dan lokasi Access dan Error Log di /myscripts/tmp/. Di dalamnya, blok server mengatur Virtual Host untuk gustave33.com di Port 80. Konfigurasi ini secara spesifik mengatasi Soal 5 dengan menggunakan direktif index `profile_gustave.html;`, yang memastikan file `profile_gustave.html` disajikan sebagai halaman utama dari direktori `/myscripts/myweb`  ketika diakses, sekaligus menyiapkan server ini untuk domain yang diminta oleh Soal 2/3.
 
@@ -353,11 +354,24 @@ subnet 4
 
 - Screenshot
 
-  ![]
+#### Lune
+  ![alt](https://github.com/Maleka0809/praktikum_jarkom_3/blob/531065832054689a87c2784585cfe1b7fae4daee/Screenshot%202025-11-08%20191050.png)
+
+#### Sciel
+  ![alt](https://github.com/Maleka0809/praktikum_jarkom_3/blob/2d3f1ac157d385228bec467a938676da57b1b25b/Screenshot%202025-11-08%20191115.png)
+
+#### Gustave
+  ![alt](https://github.com/Maleka0809/praktikum_jarkom_3/blob/aad91a3750b42b393677d814131502719a29b0f0/Screenshot%202025-11-08%20213906.png)
+
 
 - Explanation
 
-  `Put your explanation in here`
+  Soal kali ini merupakan perintah mengatur format yang ada pada `access.log` caranya adalah mengatur format. Disini saya menambahkan kode pada `/myscripts/myconfig/nginx.conf`
+   kode : 
+```
+  'log_format custom_lune \"[\$time_local] Jarkom Node Lune Access from \$remote_addr using method \"\$request\" returned status \$status with \$body_bytes_sent bytes sent in \$request_time seconds\";'
+```  
+`log_format custom_lune` digunakan untuk membuat format log khusus di Nginx dengan nama `custom_lune`. Bagian di dalam kutip menentukan isi log, seperti waktu akses `($time_local)`, IP klien `($remote_addr)`, metode dan URI permintaan `($request)`, status HTTP `($status)`, ukuran respons `($body_bytes_sent)`, dan waktu proses `($request_time)`. Tanda backslash (\) dipakai agar karakter khusus seperti $ dan " tidak dibaca oleh shell, tapi diteruskan ke Nginx
 
 <br>
 
@@ -371,13 +385,25 @@ Modify the Nginx configuration so that Gustave’s profile page can only be acce
 **Answer:**
 
 - Screenshot
-
-  `Put your screenshot in here`
+#### tanpa port
+![alt](https://github.com/Maleka0809/praktikum_jarkom_3/blob/4efb78bb645065415195ea30ae0aee21e058d98d/Screenshot%202025-11-08%20191647.png)
+#### port 8080
+![alt](https://github.com/Maleka0809/praktikum_jarkom_3/blob/4efb78bb645065415195ea30ae0aee21e058d98d/Screenshot%202025-11-08%20191654.png)
+#### port 8888
+![alt](https://github.com/Maleka0809/praktikum_jarkom_3/blob/4efb78bb645065415195ea30ae0aee21e058d98d/Screenshot%202025-11-08%20193222.png)
 
 - Explanation
-
-  `Put your explanation in here`
-
+  Server block yang menyajikan halaman profil (profile_gustave.html) dikonfigurasi agar tidak mendengarkan port 80, dan hanya mendengarkan port 8080 dan 8888.
+  cara nya adalah dengan menambahkan kode pada ` /myscripts/myconfig/nginx.conf` yang ada pada node web server.
+  kode :
+```
+server {
+    listen 8080;
+    listen 8888;
+    ...
+}
+```
+dan jangan lupa menghapus `listen 80;` dengan begitu gustave hanya bisa mendengar port 8080 atau 8888 dan tidak mendengar 80 lagi
 <br>
 
 ## Soal 8
@@ -394,11 +420,47 @@ Each node should serve the information page on a different port:_
 
 - Screenshot
 
-  `Put your screenshot in here`
+![alt](https://github.com/Maleka0809/praktikum_jarkom_3/blob/b9715b29f21e11a5306b7c5af2dad33699a847af/Screenshot%202025-11-08%20221421.png)
+![alt](https://github.com/Maleka0809/praktikum_jarkom_3/blob/b9715b29f21e11a5306b7c5af2dad33699a847af/Screenshot%202025-11-08%20221440.png)
+![alt](https://github.com/Maleka0809/praktikum_jarkom_3/blob/b9715b29f21e11a5306b7c5af2dad33699a847af/Screenshot%202025-11-08%20221536.png)
 
 - Explanation
 
-  `Put your explanation in here`
+  Tugas ini diimplementasikan dengan membuat file info.html di setiap node dan menambahkan server block kedua di /etc/nginx/sites-available/default untuk menyajikan file tersebut di port yang berbeda.
+![info.html](https://drive.google.com/file/d/1BLg3S22ldhL-wRYN-ivowEqh8cYwwfVS/view)
+
+Konfigurasi listen (Server Block Kedua):
+
+Lune: `listen 8000;`
+
+```
+server {
+    listen 8000;
+
+...
+}
+```
+
+Sciel: `listen 8100;`
+```
+server {
+    listen 8100;
+
+...
+}
+```
+
+Gustave: `listen 8200;`
+
+```
+server {
+    listen 8200;
+    
+    root /var/www/gustave;
+    index info.html;
+}
+```
+`server { ... }` Mendefinisikan server block baru (Virtual Host) yang dapat diakses melalui jaringan. `listen 8200;` Ini adalah fungsi kunci untuk Soal 8. Nginx diperintahkan untuk mendengarkan koneksi masuk hanya pada TCP port 8200. Node Lune menggunakan 8000 dan Sciel menggunakan 8100, sehingga Gustave mendapat 8200. `root /var/www/gustave;` Menetapkan direktori dasar (root directory) di mana Nginx akan mencari file yang diminta. `index info.html;` Menentukan bahwa ketika klien mengakses server hanya dengan port (misalnya, http://gustave33.com:8200), file info.html yang akan disajikan secara default.
 
 <br>
 
